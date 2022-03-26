@@ -23,33 +23,17 @@ function computerPlay(){
     let options = [rock, paper, scissors];
     return options[getRandomInt(0, 3)];
 };
-//Prompts the user for a valid input
-function userSelection() {
-    let userInput = null;
-    //Repeats until user types rock paper or scissors
-    do  {
-        userInput = prompt("Rock, paper or scissors?");
-        if (userInput == null) {
-            alert("You must write rock, paper or scissors. Play or exit.");
-        }
-        else if (userInput.match(/^(rock|paper|scissors)$/)) {
-            userInput = userInput.toLowerCase();
-        }
-        else {
-            alert("You must type rock paper or scissors!");
-            userInput = null;
-        }
-    }while (userInput == null);
-    return userInput;
-}
-let playerSelection;
-let computerSelection;
-//Round of the game that determinates if player won, lost or if it's a draw.
-function playRound(playerSelection, computerSelection) {
+//Round of the game that determines if player win, lose or if it's a draw.
+function playRound(playerSelection) {
     getRandomInt();
-    //Initialized here to prevent functions from executing outside game rounds
-    playerSelection = userSelection();
-    computerSelection = computerPlay();
+    let computerSelection = computerPlay();
+    //Display images of the element (ex:rock) computer/player selected in the round
+    let playerMove = document.querySelector(".player-selection").firstChild;
+    let computerMove = document.querySelector(".computer-selection").firstChild;
+    playerMove.alt = playerSelection;
+    playerMove.src = `imgs/${playerSelection}.png`;
+    computerMove.alt = computerSelection.name;
+    computerMove.src = `imgs/${computerSelection.name}.png`
     if (computerSelection.beats == playerSelection) {
         return `You lose! ${computerSelection.name} beats ${playerSelection}`;
     }
@@ -61,30 +45,40 @@ function playRound(playerSelection, computerSelection) {
     }
 }
 //Game with 5 rounds of rock paper and scissors
-function game(){
-    //keep track of how many times player won and coincided with the computer
-    let userPoints = 0;
-    let draw = 0;
-    for(let i = 0; i < 5; i++){
-        let round = playRound(playerSelection, computerSelection);
-        console.log(round);
-        if (round.includes("win") == true){
-            userPoints = userPoints + 1;
-        } else if (round.includes("draw") == true) {
-            draw = draw + 1;
-        }
-        //After the last round return winner, loser or draw message
-        if (i == 4) {
-            if(userPoints >= 3 || (draw == 4 && userPoints == 1)
-                    || (draw == 3 && userPoints == 2)) {
-                return `You win! You defeated the computer ${userPoints} times.`;
-            } else if (draw >= 3 || (userPoints == 2 && draw == 1)) {
-                return `It's a draw... You coincided with the computer ${draw} times`;
-            } else {
-                return `Boo! You lost! The computer defeated you ${5 - userPoints - draw} times.`
-            }
-        }
-        
-    }  
+function game(round){
+    //keep track of how many rounds player/computer won and display score in ui
+    let userPoints = document.getElementById("user-points");
+    let compuPoints = document.getElementById("compu-points");
+    let finalResult = document.querySelector(".final-result");
+    //Restart points after 5 rounds
+    if (finalResult.textContent.includes("5")) {
+        compuPoints.textContent = 0;
+        userPoints.textContent = 0;
+    }
+    if (round.includes("win") == true){
+        userPoints.textContent = parseInt(userPoints.textContent) + 1;
+    } else if (round.includes("lose") == true) {
+        compuPoints.textContent = parseInt(compuPoints.textContent) + 1;
+    }
+    //Announce winner when computer/user reach 5 points
+    if(userPoints.textContent == 5) {
+        finalResult.textContent = `You win!👑 You defeated the computer 5 times.`;
+        return true;
+    } else if (compuPoints.textContent == 5){
+        finalResult.textContent = `Boo!🍅 You lost! The computer defeated you 5 times.`;
+        return true;
+    } else {
+        finalResult.textContent = "";
+        return false;
+    }
 }
-console.log(game())
+//Adds an event listener to each selection button (rock, paper & scissors)
+document.querySelectorAll(".selection").forEach(item => {
+    item.addEventListener('click', e => {
+        //Store alt value whether user clicks in the button or in the img
+        let playerSelection = (e.target.alt || e.target.firstChild.alt);
+        let round = playRound(playerSelection);
+        document.querySelector(".result").textContent = round;
+        game(round)
+    });
+});
